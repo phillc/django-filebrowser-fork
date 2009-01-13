@@ -117,9 +117,6 @@ class FileBrowserImageType(object):
                 setattr(self, arg.rstrip('_'), img_value)
             else:
                 setattr(self, arg.rstrip('_'), False)
-    
-                                            
-            setattr(self, arg.rstrip('_'), img_value)
 
 class FileBrowserFile(object):
     def __init__(self, value):
