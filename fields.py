@@ -98,26 +98,35 @@ class FileBrowseWidget(Input):
         return render_to_string("filebrowser/custom_field.html", locals())
         
 
+
+class FileBrowserImageSize(object):
+    def __init__(self, image_type, original):
+        self.image_type = image_type
+        self.original = original
+        
+    def __unicode__(self):
+        return self._get_image()
+        
+    def _get_image(self):
+        arg = self.image_type[0]
+        value = self.original
+        value_re = re.compile(r'^(%s)' % (URL_WWW))
+        value_path = value_re.sub('', value)
+        filename = os.path.split(value_path)[1]
+        path = os.path.split(value_path)[0]
+        if os.path.isfile(os.path.join(PATH_SERVER, path, filename.replace(".",
+                                    "_").lower() + IMAGE_GENERATOR_DIRECTORY, arg + filename)):
+            img_value = os.path.join(os.path.split(value)[0], filename.replace(".",
+                                "_").lower() + IMAGE_GENERATOR_DIRECTORY, arg + filename)
+            return u'%s' % (img_value)
+        else:
+            return False
+
 class FileBrowserImageType(object):
     def __init__(self, original, image_list):
-        value = original
         for image_type in image_list:
-            arg = image_type[0]
-            value_re = re.compile(r'^(%s)' % (URL_WWW))
-            value_path = value_re.sub('', value)
-            filename = os.path.split(value_path)[1]
-            path = os.path.split(value_path)[0]
-            if os.path.isfile(os.path.join(PATH_SERVER, path, filename.replace(".",
-                                        "_").lower() + IMAGE_GENERATOR_DIRECTORY, arg + filename)):
-                img_value = os.path.join(os.path.split(value)[0], filename.replace(".",
-                                    "_").lower() + IMAGE_GENERATOR_DIRECTORY, arg + filename)
-                for item in IMAGE_GENERATOR_LANDSCAPE:
-                    if item[0] == arg:
-                        img_width = item[1]
-                setattr(self, arg.rstrip('_'), img_value)
-            else:
-                setattr(self, arg.rstrip('_'), False)
-
+            setattr(self, image_type[0].rstrip('_'), FileBrowserImageSize(image_type, original))
+            
 class FileBrowserFile(object):
     def __init__(self, value):
         self.original = value
