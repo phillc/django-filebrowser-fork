@@ -121,14 +121,19 @@ class FileBrowserImageSize(object):
         value_re = re.compile(r'^(%s)' % (URL_WWW))
         value_path = value_re.sub('', value)
         filename = os.path.split(value_path)[1]
-        path = os.path.split(value_path)[0]
-        if os.path.isfile(os.path.join(PATH_SERVER, path, filename.replace(".",
-                                    "_").lower() + IMAGE_GENERATOR_DIRECTORY, arg + filename)):
+        if CHECK_EXISTS:
+            path = os.path.split(value_path)[0]
+            if os.path.isfile(os.path.join(PATH_SERVER, path, filename.replace(".",
+                                        "_").lower() + IMAGE_GENERATOR_DIRECTORY, arg + filename)):
+                img_value = os.path.join(os.path.split(value)[0], filename.replace(".",
+                                    "_").lower() + IMAGE_GENERATOR_DIRECTORY, arg + filename)
+                return u'%s' % (img_value)
+            else:
+                return u''
+        else:
             img_value = os.path.join(os.path.split(value)[0], filename.replace(".",
                                 "_").lower() + IMAGE_GENERATOR_DIRECTORY, arg + filename)
             return u'%s' % (img_value)
-        else:
-            return u''
 
 class FileBrowserImageType(object):
     def __init__(self, original, image_list):

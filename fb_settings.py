@@ -88,3 +88,11 @@ IMAGE_GENERATOR_PORTRAIT = getattr(settings, "FILEBROWSER_IMAGE_GENERATOR_PORTRA
 
 # A list of Images to generate in the format (prefix, image width, image height). 
 IMAGE_CROP_GENERATOR = getattr(settings, "FILEBROWSER_IMAGE_CROP_GENERATOR", [('cropped_',60,60),('croppedthumbnail_',140,140)])
+
+# When accessing FilebrowserField.landscape.xxx FilebrowserField.portrait.xxx, do we need to check if
+# the file actually exists to return a filename?
+# Set to True to always check
+CHECK_EXISTS = getattr(settings, 'FILEBROWSER_CHECK_EXISTS', True)
+
+# Force the use of the image generator each time a file is uploaded via FileBrowser
+FORCE_GENERATOR = getattr(settings, 'FILEBROWSER_FORCE_GENERATOR', False)
