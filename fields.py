@@ -16,6 +16,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.forms.fields import EMPTY_VALUES
 
 import os
+import re
 
 from filebrowser.functions import _get_file_type, _url_join
 from filebrowser.fb_settings import *
@@ -65,7 +66,10 @@ class FileBrowseWidget(Input):
     
     def render(self, name, value, attrs=None):
         if value is None: value = ''
+        print self
+        print value
         final_attrs = self.build_attrs(attrs, type=self.input_type, name=name)
+        print final_attrs
         if value == "":
             final_attrs['initial_directory'] = _url_join(URL_ADMIN, final_attrs['initial_directory'])
         else:
@@ -95,11 +99,68 @@ class FileBrowseWidget(Input):
         path_search_icon = URL_FILEBROWSER_MEDIA + 'img/filebrowser_icon_show.gif'
         final_attrs['search_icon'] = path_search_icon
         return render_to_string("filebrowser/custom_field.html", locals())
-    
+        
+        
+        
+class FileBrowserFile(object):
+    def __init__(self, instance, field, name):
+        self.instance = instance
+        self.field = field
+        self.name = name
+
+    def __unicode__(self):
+        return self.name
+        
+    def landscape(self):
+        value = self.name
+        arg = 'small'
+        if value:
+            value_re = re.compile(r'^(%s)' % (PATH_SERVER))
+            value_path = value_re.sub('', value)
+            filename = os.path.split(value_path)[1]
+            path = os.path.split(value_path)[0]
+            print value
+            print PATH_SERVER
+            print value_path
+            print filename
+            print path
+            print 'lets see'
+            if os.path.isfile(os.path.join(PATH_SERVER, path, filename.replace(".", "_").lower() + IMAGE_GENERATOR_DIRECTORY, arg + filename)):
+                print 'got this far'
+                img_value = os.path.join(os.path.split(value)[0], filename.replace(".", "_").lower() + IMAGE_GENERATOR_DIRECTORY, arg + filename)
+                for item in IMAGE_GENERATOR_LANDSCAPE:
+                    if item[0] == arg:
+                        img_width = item[1]
+                return "<img src=" + img_value + " width=" + str(img_width) + " />"
+            else:
+                return False
+        else:
+            return False
+        
+class FileBrowseDescriptor(object):
+    def __init__(self, field):
+        self.field = field
+
+    def __get__(self, instance=None, owner=None):
+        if instance is None:
+            raise AttributeError, "%s can only be accessed from %s instances." % (self.field.name(self.owner.__name__))
+        file = instance.__dict__[self.field.name]
+        if not isinstance(file, FileBrowserFile):
+            # Create a new instance of FieldFile, based on a given file name
+            instance.__dict__[self.field.name] = self.field.attr_class(instance, self.field, file)
+        elif not hasattr(file, 'field'):
+            # The FieldFile was pickled, so some attributes need to be reset.
+            file.instance = instance
+            file.field = self.field
+        return instance.__dict__[self.field.name]
+
+    def __set__(self, instance, value):
+        instance.__dict__[self.field.name] = value
+        
 
 class FileBrowseField(Field):
-    __metaclass__ = models.SubfieldBase
-    
+    attr_class = FileBrowserFile
+
     def get_manipulator_field_objs(self):
         return [oldforms.TextField]
     
@@ -131,4 +192,6 @@ class FileBrowseField(Field):
             self.extensions_allowed = ""
         return super(FileBrowseField, self).__init__(*args, **kwargs)
     
-
+    def contribute_to_class(self, cls, name):
+        super(FileBrowseField, self).contribute_to_class(cls, name)
+        setattr(cls, self.name, FileBrowseDescriptor(self))
