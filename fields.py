@@ -65,7 +65,10 @@ class FileBrowseWidget(Input):
             self.attrs = {}
     
     def render(self, name, value, attrs=None):
-        if value is None: value = ''
+        if value is None:
+            value = ''
+        else:
+            value = value.original
         final_attrs = self.build_attrs(attrs, type=self.input_type, name=name)
         if value == "":
             final_attrs['initial_directory'] = _url_join(URL_ADMIN, final_attrs['initial_directory'])
@@ -105,9 +108,14 @@ class FileBrowserImageSize(object):
         self.original = original
         
     def __unicode__(self):
-        return self._get_image()
+        return u'%s' % (self._get_image())
         
     def _get_image(self):
+        if not hasattr(self, '_image_cache'):
+            self._image_cache = self._get_image_name()
+        return self._image_cache
+    
+    def _get_image_name(self):
         arg = self.image_type[0]
         value = self.original
         value_re = re.compile(r'^(%s)' % (URL_WWW))
@@ -120,7 +128,7 @@ class FileBrowserImageSize(object):
                                 "_").lower() + IMAGE_GENERATOR_DIRECTORY, arg + filename)
             return u'%s' % (img_value)
         else:
-            return False
+            return u''
 
 class FileBrowserImageType(object):
     def __init__(self, original, image_list):
@@ -135,13 +143,19 @@ class FileBrowserFile(object):
         return self.original
 
     def landscape(self):
-        return FileBrowserImageType(self.original, IMAGE_GENERATOR_LANDSCAPE)
+        if not hasattr(self, '_landscape_cache'):
+            self._landscape_cache = FileBrowserImageType(self.original, IMAGE_GENERATOR_LANDSCAPE)
+        return self._landscape_cache
 
     def portrait(self):
-        return FileBrowserImageType(self.original, IMAGE_GENERATOR_PORTRAIT)
+        if not hasattr(self, '_portrait_cache'):
+            self._portrait_cache =  FileBrowserImageType(self.original, IMAGE_GENERATOR_PORTRAIT)
+        return self._portrait_cache
 
     def crop(self):
-        return FileBrowserImageType(self.original, IMAGE_CROP_GENERATOR)
+        if not hasattr(self, '_crop_cache'):
+            self._crop_cache = FileBrowserImageType(self.original, IMAGE_CROP_GENERATOR)
+        return self._crop_cache
 
 class FileBrowseField(Field):
     __metaclass__ = models.SubfieldBase
@@ -150,6 +164,9 @@ class FileBrowseField(Field):
         if isinstance(value, FileBrowserFile):
             return value
         return FileBrowserFile(value)        
+    
+    def get_db_prep_value(self, value):
+        return value.original    
     
     def get_manipulator_field_objs(self):
         return [oldforms.TextField]
