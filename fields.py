@@ -65,9 +65,8 @@ class FileBrowseWidget(Input):
             self.attrs = {}
     
     def render(self, name, value, attrs=None):
+        value = value.name
         if value is None: value = ''
-        print self
-        print value
         final_attrs = self.build_attrs(attrs, type=self.input_type, name=name)
         print final_attrs
         if value == "":
