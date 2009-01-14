@@ -271,7 +271,6 @@ def _image_generator(PATH_SERVER, path, filename):
     """
     Generate Versions for an Image.
     """
-    
     # PIL's Error "Suspension not allowed here" work around:
     # s. http://mail.python.org/pipermail/image-sig/1999-August/000816.html
     import ImageFile
@@ -291,6 +290,7 @@ def _image_generator(PATH_SERVER, path, filename):
         generator_to_use = IMAGE_GENERATOR_LANDSCAPE
     else:
         generator_to_use = IMAGE_GENERATOR_PORTRAIT
+        
     for prefix in generator_to_use: 
         image_path = os.path.join(versions_path, prefix[0] + filename)
         try:
@@ -302,11 +302,15 @@ def _image_generator(PATH_SERVER, path, filename):
             new_size = (new_size_width, new_size_height)
             # ONLY MAKE NEW IMAGE VERSION OF ORIGINAL IMAGE IS BIGGER THAN THE NEW VERSION
             # OTHERWISE FAIL SILENTLY
+            
             if int(current_width) > int(new_size_width):
                 # NEW IMAGE
                 new_image = im.resize(new_size, Image.ANTIALIAS)
                 new_image.save(image_path, quality=90, optimize=1)
                 # MAKE THUMBNAIL
+                _make_image_thumbnail(PATH_SERVER, os.path.join(path, filename.replace(".", "_").lower() + IMAGE_GENERATOR_DIRECTORY), prefix[0] + filename)
+            elif FORCE_GENERATOR_RUN:
+                im.save(image_path)
                 _make_image_thumbnail(PATH_SERVER, os.path.join(path, filename.replace(".", "_").lower() + IMAGE_GENERATOR_DIRECTORY), prefix[0] + filename)
         except IOError:
             msg = "%s: %s" % (filename, _('Image creation failed.'))

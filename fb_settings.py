@@ -96,3 +96,7 @@ CHECK_EXISTS = getattr(settings, 'FILEBROWSER_CHECK_EXISTS', True)
 
 # Force the use of the image generator each time a file is uploaded via FileBrowser
 FORCE_GENERATOR = getattr(settings, 'FILEBROWSER_FORCE_GENERATOR', False)
+
+# If set True, Image Generator will copy the image if the dimensions are smaller than the
+# specified dimensions.
+FORCE_GENERATOR_RUN = getattr(settings, 'FILEBROWSER_FORCE_GENERATOR_RUN', False)
