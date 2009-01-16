@@ -117,7 +117,7 @@ class FileBrowserImageSize(object):
         return self._image_cache
     
     def _get_image_name(self):
-        arg = self.image_type[0]
+        arg = self.image_type
         value = self.original
         value_re = re.compile(r'^(%s)' % (URL_WWW))
         value_path = value_re.sub('', value)
@@ -139,24 +139,26 @@ class FileBrowserImageSize(object):
 class FileBrowserImageType(object):
     def __init__(self, original, image_list):
         for image_type in image_list:
-            setattr(self, image_type[0].rstrip('_'), FileBrowserImageSize(image_type, original))
+            setattr(self, image_type[0].rstrip('_'), FileBrowserImageSize(image_type[0], original))
             
 class FileBrowserFile(object):
     def __init__(self, value):
         self.original = value
-        
+        self._add_image_types()
+
+    def _add_image_types(self):
+        all_prefixes = []
+        for imgtype in IMAGE_GENERATOR_LANDSCAPE:
+            if imgtype[0] not in all_prefixes:
+                all_prefixes.append(imgtype[0])
+                setattr(self, imgtype[0].rstrip('_'), FileBrowserImageSize(imgtype[0], self.original))
+        for imgtype in IMAGE_GENERATOR_PORTRAIT:
+            if imgtype[0] not in all_prefixes:
+                all_prefixes.append(imgtype[0])
+                setattr(self, imgtype[0].rstrip('_'), FileBrowserImageSize(imgtype[0], self.original))
+    
     def __unicode__(self):
         return self.original
-
-    def landscape(self):
-        if not hasattr(self, '_landscape_cache'):
-            self._landscape_cache = FileBrowserImageType(self.original, IMAGE_GENERATOR_LANDSCAPE)
-        return self._landscape_cache
-
-    def portrait(self):
-        if not hasattr(self, '_portrait_cache'):
-            self._portrait_cache =  FileBrowserImageType(self.original, IMAGE_GENERATOR_PORTRAIT)
-        return self._portrait_cache
 
     def crop(self):
         if not hasattr(self, '_crop_cache'):
